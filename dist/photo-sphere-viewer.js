@@ -1,7 +1,7 @@
 /*!
  * Photo Sphere Viewer 3.5.1
  * Copyright (c) 2014-2015 Jérémy Heleine
- * Copyright (c) 2015-2019 Damien "Mistic" Sorel
+ * Copyright (c) 2015-2020 Damien "Mistic" Sorel
  * Licensed under MIT (https://opensource.org/licenses/MIT)
  */
 (function(root, factory) {
@@ -411,8 +411,8 @@ function PhotoSphereViewer(options) {
     needsUpdate: true,
     isCubemap: undefined,
     position: {
-      longitude: 0,
-      latitude: 0
+      longitude: 4.7,
+      latitude: -0.1
     },
     ready: false,
     direction: null,
@@ -808,6 +808,88 @@ PhotoSphereViewer.prototype._loadTexture = function(panorama) {
 };
 
 /**
+ * @summary Creates cache
+ * @param {string|string[]} panorama
+ * @returns {Promise.<PhotoSphereViewer.PanoData>}
+ * @fires PhotoSphereViewer.panorama-load-progress
+ * @throws {PSVError} when the image cannot be loaded
+ * @private
+ */
+PhotoSphereViewer.prototype._createCache = function(panorama) {
+  if (this.config.cache_texture) {
+    var cache = this.getPanoramaCache(panorama);
+
+    if (cache) {
+      return Promise.resolve(cache.image);
+    }
+  }
+
+  return this._loadXMP(panorama).then(function(pano_data) {
+    return new Promise(function(resolve, reject) {
+      var loader = new THREE.ImageLoader();
+      var progress = pano_data ? 100 : 0;
+
+      if (this.config.with_credentials) {
+        loader.setCrossOrigin('use-credentials');
+      }
+      else {
+        loader.setCrossOrigin('anonymous');
+      }
+
+      var onload = function(img) {
+        progress = 100;
+        this.loader.setProgress(progress);
+
+        /**
+         * @event panorama-load-progress
+         * @memberof PhotoSphereViewer
+         * @summary Triggered while a panorama image is loading
+         * @param {string} panorama
+         * @param {int} progress
+         */
+        this.trigger('panorama-load-progress', panorama, progress);
+
+        // Config XMP data
+        if (!pano_data && this.config.pano_data) {
+          pano_data = PSVUtils.clone(this.config.pano_data);
+        }
+
+        // Default XMP data
+        if (!pano_data) {
+          pano_data = {
+            full_width: img.width,
+            full_height: img.height,
+            cropped_width: img.width,
+            cropped_height: img.height,
+            cropped_x: 0,
+            cropped_y: 0
+          };
+        }
+
+        this.prop.pano_data = pano_data;
+
+        var texture = new THREE.Texture(img);
+        texture.needsUpdate = true;
+        texture.minFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+
+        if (this.config.cache_texture) {
+          this._putPanoramaCache({
+            panorama: panorama,
+            image: texture,
+            pano_data: pano_data
+          });
+        }
+
+        resolve(texture);
+      };
+
+      loader.load(panorama, onload.bind(this));
+    }.bind(this));
+  }.bind(this));
+}
+
+/**
  * @summary Loads the sphere texture
  * @param {string} panorama
  * @returns {Promise.<THREE.Texture>}
@@ -1048,6 +1130,55 @@ PhotoSphereViewer.prototype._loadCubemapTexture = function(panorama) {
 };
 
 /**
+ * @summary Take screenShot of selected camera
+ * @private
+ */
+PhotoSphereViewer.prototype._takeScreenShot = function(){
+  this.rotate({
+      longitude: this.config.default_long,
+      latitude: this.config.default_lat
+  });
+
+  this._render();
+
+  try {
+    var strMime = "image/png";
+    return this.renderer.domElement.toDataURL(strMime);
+  } catch (e) {
+    return;
+  }
+};
+
+/**
+* @summary Convert image to data URI
+* @private
+*/
+PhotoSphereViewer.prototype._imageToDataUri = function(img, tWidth, tHeight, fn){
+  var canvas = document.createElement("canvas");
+  var ctx = canvas.getContext("2d");
+
+  canvas.width = tWidth; // target width
+  canvas.height = tHeight; // target height
+
+  var image = new Image();
+  image.src = img;
+
+  document.createElement("original").appendChild(image);
+  image.onload = function(e) {
+    ctx.drawImage(image,
+      0, 0, image.width, image.height,
+      0, 0, canvas.width, canvas.height
+    );
+
+    // create a new base64 encoding
+    var resampledImage = new Image();
+    resampledImage.src = canvas.toDataURL();
+
+    fn(resampledImage.src);
+  }
+};
+
+/**
  * @summary Applies the texture to the scene, creates the scene if needed
  * @param {THREE.Texture|THREE.Texture[]} texture
  * @fires PhotoSphereViewer.panorama-loaded
@@ -1162,12 +1293,7 @@ PhotoSphereViewer.prototype._createSphere = function(scale) {
  * @private
  */
 PhotoSphereViewer.prototype._setSphereCorrection = function(mesh, sphere_correction) {
-  this.cleanSphereCorrection(sphere_correction);
-  mesh.rotation.set(
-    sphere_correction.tilt,
-    sphere_correction.pan,
-    sphere_correction.roll
-  );
+  return;
 };
 
 /**
@@ -1230,7 +1356,7 @@ PhotoSphereViewer.prototype._transition = function(texture, options) {
     });
   }
   else {
-    mesh = this._createSphere(0.9);
+    mesh = this._createSphere();
 
     mesh.material.map = texture;
     mesh.material.transparent = true;
@@ -1252,12 +1378,6 @@ PhotoSphereViewer.prototype._transition = function(texture, options) {
     // Latitude rotation along the camera horizontal axis
     var horizontalAxis = new THREE.Vector3(0, 1, 0).cross(this.camera.getWorldDirection()).normalize();
     mesh.rotateOnWorldAxis(horizontalAxis, options.latitude - this.prop.position.latitude);
-
-    // FIXME: find a better way to handle ranges
-    if (this.config.latitude_range || this.config.longitude_range) {
-      this.config.longitude_range = this.config.latitude_range = null;
-      console.warn('PhotoSphereViewer: trying to perform transition with longitude_range and/or latitude_range, ranges cleared.');
-    }
   }
 
   this.scene.add(mesh);
@@ -1500,9 +1620,9 @@ PhotoSphereViewer.DEFAULTS = {
   usexmpdata: true,
   pano_data: null,
   webgl: true,
-  min_fov: 30,
-  max_fov: 90,
-  default_fov: null,
+  min_fov: 10,
+  max_fov: 100,
+  default_fov: 40,
   default_long: 0,
   default_lat: 0,
   sphere_correction: {
@@ -1510,8 +1630,8 @@ PhotoSphereViewer.DEFAULTS = {
     tilt: 0,
     roll: 0
   },
-  longitude_range: null,
-  latitude_range: null,
+  longitude_range: [-1, 1],
+  latitude_range: [-3 * Math.PI / 4, 3 * Math.PI / 4],
   move_speed: 1,
   zoom_speed: 2,
   time_anim: 2000,
@@ -1567,12 +1687,12 @@ PhotoSphereViewer.DEFAULTS = {
   click_event_on_marker: false,
   transition: {
     duration: 1500,
-    loader: true
+    loader: false
   },
   loading_img: null,
-  loading_txt: 'Loading...',
+  loading_txt: '',
   size: null,
-  cache_texture: 0,
+  cache_texture: 90,
   templates: {},
   markers: [],
   with_credentials: false
@@ -2087,9 +2207,6 @@ PhotoSphereViewer.prototype._moveZoom = function(evt) {
     ];
 
     var p = Math.sqrt(Math.pow(t[0].x - t[1].x, 2) + Math.pow(t[0].y - t[1].y, 2));
-    var delta = 80 * (p - this.prop.pinch_dist) / this.prop.size.width;
-
-    this.zoom(this.prop.zoom_lvl + delta);
 
     this._move({
       clientX: (t[0].x + t[1].x) / 2,
@@ -2108,12 +2225,6 @@ PhotoSphereViewer.prototype._moveZoom = function(evt) {
 PhotoSphereViewer.prototype._onMouseWheel = function(evt) {
   evt.preventDefault();
   evt.stopPropagation();
-
-  var delta = PSVUtils.normalizeWheel(evt).spinY * 5;
-
-  if (delta !== 0) {
-    this.zoom(this.prop.zoom_lvl - delta * this.config.mousewheel_factor);
-  }
 };
 
 /**
@@ -2349,9 +2460,7 @@ PhotoSphereViewer.prototype.destroy = function() {
  * @throws {PSVError} when another panorama is already loading
  */
 PhotoSphereViewer.prototype.setPanorama = function(path, options, transition) {
-  if (this.prop.loading_promise !== null) {
-    throw new PSVError('Loading already in progress');
-  }
+  this.prop.loading_promise = null;
 
   if (typeof options === 'boolean') {
     transition = options;
@@ -2828,7 +2937,7 @@ PhotoSphereViewer.prototype.animate = function(options, speed) {
       this.zoom(options.zoom);
     }
 
-    return PSVAnimation.resolve();
+    return this.prop.animation_promise;
   }
 
   this.prop.animation_promise = new PSVAnimation({
@@ -3255,6 +3364,9 @@ PhotoSphereViewer.prototype.applyRanges = function(position) {
       sidesReached.push('top');
     }
   }
+
+  this.prop.vFov = this.config.max_fov + (this.prop.zoom_lvl / 100) * (this.config.min_fov - this.config.max_fov);
+  this.prop.hFov = THREE.Math.radToDeg(2 * Math.atan(Math.tan(THREE.Math.degToRad(this.prop.vFov) / 2) * this.prop.aspect));
 
   return sidesReached;
 };
@@ -4230,20 +4342,7 @@ PSVLoader.prototype.destroy = function() {
  * @param {int} value - from 0 to 100
  */
 PSVLoader.prototype.setProgress = function(value) {
-  var context = this.canvas.getContext('2d');
-
-  context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-  context.lineWidth = this.tickness;
-  context.strokeStyle = PSVUtils.getStyle(this.loader, 'color');
-
-  context.beginPath();
-  context.arc(
-    this.canvas.width / 2, this.canvas.height / 2,
-    this.canvas.width / 2 - this.tickness / 2,
-    -Math.PI / 2, value / 100 * 2 * Math.PI - Math.PI / 2
-  );
-  context.stroke();
+  return;
 };
 
 
@@ -6048,10 +6147,6 @@ PSVNavBarZoomButton.prototype.create = function() {
   zoom_plus.addEventListener('mousedown', this._zoomIn.bind(this));
 
   this.psv.on('zoom-updated', this);
-
-  this.psv.once('ready', function() {
-    this._moveZoomValue(this.psv.prop.zoom_lvl);
-  }.bind(this));
 };
 
 /**

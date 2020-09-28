@@ -107,9 +107,9 @@ PhotoSphereViewer.DEFAULTS = {
   usexmpdata: true,
   pano_data: null,
   webgl: true,
-  min_fov: 30,
-  max_fov: 90,
-  default_fov: null,
+  min_fov: 10,
+  max_fov: 100,
+  default_fov: 40,
   default_long: 0,
   default_lat: 0,
   sphere_correction: {
@@ -117,8 +117,8 @@ PhotoSphereViewer.DEFAULTS = {
     tilt: 0,
     roll: 0
   },
-  longitude_range: null,
-  latitude_range: null,
+  longitude_range: [-1, 1],
+  latitude_range: [-3 * Math.PI / 4, 3 * Math.PI / 4],
   move_speed: 1,
   zoom_speed: 2,
   time_anim: 2000,
@@ -174,12 +174,12 @@ PhotoSphereViewer.DEFAULTS = {
   click_event_on_marker: false,
   transition: {
     duration: 1500,
-    loader: true
+    loader: false
   },
   loading_img: null,
-  loading_txt: 'Loading...',
+  loading_txt: '',
   size: null,
-  cache_texture: 0,
+  cache_texture: 90,
   templates: {},
   markers: [],
   with_credentials: false

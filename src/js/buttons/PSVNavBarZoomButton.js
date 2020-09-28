@@ -82,10 +82,6 @@ PSVNavBarZoomButton.prototype.create = function() {
   zoom_plus.addEventListener('mousedown', this._zoomIn.bind(this));
 
   this.psv.on('zoom-updated', this);
-
-  this.psv.once('ready', function() {
-    this._moveZoomValue(this.psv.prop.zoom_lvl);
-  }.bind(this));
 };
 
 /**

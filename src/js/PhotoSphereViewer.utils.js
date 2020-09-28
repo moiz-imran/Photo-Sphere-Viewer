@@ -245,5 +245,8 @@ PhotoSphereViewer.prototype.applyRanges = function(position) {
     }
   }
 
+  this.prop.vFov = this.config.max_fov + (this.prop.zoom_lvl / 100) * (this.config.min_fov - this.config.max_fov);
+  this.prop.hFov = THREE.Math.radToDeg(2 * Math.atan(Math.tan(THREE.Math.degToRad(this.prop.vFov) / 2) * this.prop.aspect));
+
   return sidesReached;
 };

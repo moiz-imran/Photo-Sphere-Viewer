@@ -175,9 +175,7 @@ PhotoSphereViewer.prototype.destroy = function() {
  * @throws {PSVError} when another panorama is already loading
  */
 PhotoSphereViewer.prototype.setPanorama = function(path, options, transition) {
-  if (this.prop.loading_promise !== null) {
-    throw new PSVError('Loading already in progress');
-  }
+  this.prop.loading_promise = null;
 
   if (typeof options === 'boolean') {
     transition = options;
@@ -654,7 +652,7 @@ PhotoSphereViewer.prototype.animate = function(options, speed) {
       this.zoom(options.zoom);
     }
 
-    return PSVAnimation.resolve();
+    return this.prop.animation_promise;
   }
 
   this.prop.animation_promise = new PSVAnimation({

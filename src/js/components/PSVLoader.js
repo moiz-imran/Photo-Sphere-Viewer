@@ -87,18 +87,5 @@ PSVLoader.prototype.destroy = function() {
  * @param {int} value - from 0 to 100
  */
 PSVLoader.prototype.setProgress = function(value) {
-  var context = this.canvas.getContext('2d');
-
-  context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-  context.lineWidth = this.tickness;
-  context.strokeStyle = PSVUtils.getStyle(this.loader, 'color');
-
-  context.beginPath();
-  context.arc(
-    this.canvas.width / 2, this.canvas.height / 2,
-    this.canvas.width / 2 - this.tickness / 2,
-    -Math.PI / 2, value / 100 * 2 * Math.PI - Math.PI / 2
-  );
-  context.stroke();
+  return;
 };

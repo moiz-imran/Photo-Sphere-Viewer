@@ -392,8 +392,8 @@ function PhotoSphereViewer(options) {
     needsUpdate: true,
     isCubemap: undefined,
     position: {
-      longitude: 0,
-      latitude: 0
+      longitude: 4.7,
+      latitude: -0.1
     },
     ready: false,
     direction: null,

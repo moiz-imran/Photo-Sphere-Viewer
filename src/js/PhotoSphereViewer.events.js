@@ -486,9 +486,6 @@ PhotoSphereViewer.prototype._moveZoom = function(evt) {
     ];
 
     var p = Math.sqrt(Math.pow(t[0].x - t[1].x, 2) + Math.pow(t[0].y - t[1].y, 2));
-    var delta = 80 * (p - this.prop.pinch_dist) / this.prop.size.width;
-
-    this.zoom(this.prop.zoom_lvl + delta);
 
     this._move({
       clientX: (t[0].x + t[1].x) / 2,
@@ -507,12 +504,6 @@ PhotoSphereViewer.prototype._moveZoom = function(evt) {
 PhotoSphereViewer.prototype._onMouseWheel = function(evt) {
   evt.preventDefault();
   evt.stopPropagation();
-
-  var delta = PSVUtils.normalizeWheel(evt).spinY * 5;
-
-  if (delta !== 0) {
-    this.zoom(this.prop.zoom_lvl - delta * this.config.mousewheel_factor);
-  }
 };
 
 /**
