@@ -641,7 +641,11 @@ PhotoSphereViewer.prototype._run = function(timestamp) {
  * @fires PhotoSphereViewer.render
  * @private
  */
-PhotoSphereViewer.prototype._render = function() {
+PhotoSphereViewer.prototype._render = function(overrideData) {
+  if (overrideData && overrideData.aspect) {
+    this.renderer.setSize(this.prop.size.width, this.prop.size.width / overrideData.aspect)
+  }
+
   this.prop.direction = this.sphericalCoordsToVector3(this.prop.position);
   this.camera.position.set(0, 0, 0);
   this.camera.lookAt(this.prop.direction);
@@ -650,8 +654,7 @@ PhotoSphereViewer.prototype._render = function() {
     this.camera.position.copy(this.prop.direction).multiplyScalar(this.config.fisheye / 2).negate();
   }
 
-  this.camera.aspect = this.prop.aspect;
-  console.log('aspect', this.camera.aspect);
+  this.camera.aspect = overrideData && overrideData.aspect ? overrideData.aspect : this.prop.aspect;
   this.camera.fov = this.prop.vFov;
   this.camera.updateProjectionMatrix();
 
@@ -1131,6 +1134,16 @@ PhotoSphereViewer.prototype._loadCubemapTexture = function(panorama) {
 };
 
 /**
+ * @summary Reset canvas size to default
+ * @private
+ */
+PhotoSphereViewer.prototype._resetSize = function(){
+  this.renderer.setSize(this.prop.size.width, this.prop.size.height);
+
+  this._render();
+};
+
+/**
  * @summary Take screenShot of selected camera
  * @private
  */
@@ -1144,8 +1157,12 @@ PhotoSphereViewer.prototype._takeScreenShot = function(){
 
   try {
     var strMime = "image/png";
-    return this.renderer.domElement.toDataURL(strMime);
+    var dataURL = this.renderer.domElement.toDataURL(strMime);
+
+    this._resetSize();
+    return dataURL;
   } catch (e) {
+    this._resetSize();
     return;
   }
 };
