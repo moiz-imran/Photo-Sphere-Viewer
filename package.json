@@ -1,5 +1,5 @@
 {
-  "name": "photo-sphere-viewer",
+  "name": "photo-sphere-viewer-tin",
   "version": "3.5.1",
   "authors": [
     {
@@ -59,7 +59,7 @@
   "main": "dist/photo-sphere-viewer.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/mistic100/Photo-Sphere-Viewer.git"
+    "url": "git@github.com:moiz-imran/Photo-Sphere-Viewer.git"
   },
   "scripts": {
     "build": "grunt build",

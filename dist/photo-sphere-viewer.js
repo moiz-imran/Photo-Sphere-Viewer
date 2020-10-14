@@ -651,6 +651,7 @@ PhotoSphereViewer.prototype._render = function() {
   }
 
   this.camera.aspect = this.prop.aspect;
+  console.log('aspect', this.camera.aspect);
   this.camera.fov = this.prop.vFov;
   this.camera.updateProjectionMatrix();
 
