@@ -538,7 +538,9 @@ PhotoSphereViewer.prototype._takeScreenShot = function(){
       latitude: this.config.default_lat
   });
 
-  this._render();
+  var fixedAspectRatio = 1.6
+
+  this._render({ aspect: fixedAspectRatio });
 
   try {
     var strMime = "image/png";
