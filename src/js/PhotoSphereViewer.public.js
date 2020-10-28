@@ -600,7 +600,7 @@ PhotoSphereViewer.prototype.rotate = function(position, ignoreRange) {
  * @param {string|int} [speed] - animation speed or duration (in milliseconds)
  * @returns {PSVAnimation}
  */
-PhotoSphereViewer.prototype.animate = function(options, speed) {
+PhotoSphereViewer.prototype.animate = function(options, speed, expandRange) {
   this._stopAll();
 
   var positionProvided = this.isExtendedPosition(options);
@@ -611,6 +611,12 @@ PhotoSphereViewer.prototype.animate = function(options, speed) {
 
   // clean/filter position and compute duration
   if (positionProvided) {
+    if (expandRange && this.config.default_latitude_range) {
+      this._setLatitudeRange([
+        this.config.default_latitude_range[0] * 2,
+        this.config.default_latitude_range[1]
+      ]);
+    }
     this.cleanPosition(options);
     this.applyRanges(options);
 

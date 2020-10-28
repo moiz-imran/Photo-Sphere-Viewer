@@ -584,6 +584,25 @@ PhotoSphereViewer.prototype._imageToDataUri = function(img, tWidth, tHeight, fn)
 };
 
 /**
+ * @summary Set or reset latitude range of canvas
+ * @private
+ */
+PhotoSphereViewer.prototype._setLatitudeRange = function(range){
+  if (range) {
+    this.config.latitude_range = range;
+  } else {
+    if (this.config.default_latitude_range) {
+      this.config.latitude_range = this.config.default_latitude_range
+    }
+
+    this.rotate({
+      longitude: this.prop.position.longitude,
+      latitude: this.prop.position.latitude
+    })
+  }
+};
+
+/**
  * @summary Applies the texture to the scene, creates the scene if needed
  * @param {THREE.Texture|THREE.Texture[]} texture
  * @fires PhotoSphereViewer.panorama-loaded
