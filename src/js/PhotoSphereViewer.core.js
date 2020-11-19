@@ -589,16 +589,16 @@ PhotoSphereViewer.prototype._imageToDataUri = function(img, tWidth, tHeight, fn)
  */
 PhotoSphereViewer.prototype._resizeView = function(height){
   this.resize({width: this.prop.size.width, height: height});
-  this.needsUpdate();
+  var rangeReductionFactor = 0.9;
 
   this._setLongitudeRange([
-    this.config.default_longitude_range[0] * 0.9,
-    this.config.default_longitude_range[1] * 0.9
+    this.config.default_longitude_range[0] * rangeReductionFactor,
+    this.config.default_longitude_range[1] * rangeReductionFactor
   ]);
 
   this._setLatitudeRange([
-    this.config.default_latitude_range[0] * 0.9,
-    this.config.default_latitude_range[1] * 0.9
+    this.config.default_latitude_range[0] * rangeReductionFactor,
+    this.config.default_latitude_range[1] * rangeReductionFactor
   ]);
 };
 

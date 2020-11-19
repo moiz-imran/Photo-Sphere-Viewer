@@ -1204,16 +1204,16 @@ PhotoSphereViewer.prototype._imageToDataUri = function(img, tWidth, tHeight, fn)
  */
 PhotoSphereViewer.prototype._resizeView = function(height){
   this.resize({width: this.prop.size.width, height: height});
-  this.needsUpdate();
+  var rangeReductionFactor = 0.9;
 
   this._setLongitudeRange([
-    this.config.default_longitude_range[0] * 0.9,
-    this.config.default_longitude_range[1] * 0.9
+    this.config.default_longitude_range[0] * rangeReductionFactor,
+    this.config.default_longitude_range[1] * rangeReductionFactor
   ]);
 
   this._setLatitudeRange([
-    this.config.default_latitude_range[0] * 0.9,
-    this.config.default_latitude_range[1] * 0.9
+    this.config.default_latitude_range[0] * rangeReductionFactor,
+    this.config.default_latitude_range[1] * rangeReductionFactor
   ]);
 };
 
@@ -2974,7 +2974,7 @@ PhotoSphereViewer.prototype.rotate = function(position, ignoreRange) {
  * @param {string|int} [speed] - animation speed or duration (in milliseconds)
  * @returns {PSVAnimation}
  */
-PhotoSphereViewer.prototype.animate = function(options, speed, expandRange) {
+PhotoSphereViewer.prototype.animate = function(options, speed, expandRange, resizeHeight) {
   this._stopAll();
 
   var positionProvided = this.isExtendedPosition(options);
@@ -2982,6 +2982,10 @@ PhotoSphereViewer.prototype.animate = function(options, speed, expandRange) {
 
   var animProperties = {};
   var duration;
+
+  if (resizeHeight) {
+    this._resizeView(resizeHeight);
+  }
 
   // clean/filter position and compute duration
   if (positionProvided) {
@@ -3041,7 +3045,7 @@ PhotoSphereViewer.prototype.animate = function(options, speed, expandRange) {
     easing: 'inOutSine',
     onTick: function(properties) {
       if (positionProvided) {
-        this.rotate(properties, true);
+        this.rotate(properties, expandRange);
       }
       if (zoomProvided) {
         this.zoom(properties.zoom);

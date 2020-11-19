@@ -600,7 +600,7 @@ PhotoSphereViewer.prototype.rotate = function(position, ignoreRange) {
  * @param {string|int} [speed] - animation speed or duration (in milliseconds)
  * @returns {PSVAnimation}
  */
-PhotoSphereViewer.prototype.animate = function(options, speed, expandRange) {
+PhotoSphereViewer.prototype.animate = function(options, speed, expandRange, resizeHeight) {
   this._stopAll();
 
   var positionProvided = this.isExtendedPosition(options);
@@ -608,6 +608,10 @@ PhotoSphereViewer.prototype.animate = function(options, speed, expandRange) {
 
   var animProperties = {};
   var duration;
+
+  if (resizeHeight) {
+    this._resizeView(resizeHeight);
+  }
 
   // clean/filter position and compute duration
   if (positionProvided) {
@@ -667,7 +671,7 @@ PhotoSphereViewer.prototype.animate = function(options, speed, expandRange) {
     easing: 'inOutSine',
     onTick: function(properties) {
       if (positionProvided) {
-        this.rotate(properties, true);
+        this.rotate(properties, expandRange);
       }
       if (zoomProvided) {
         this.zoom(properties.zoom);
