@@ -1199,6 +1199,37 @@ PhotoSphereViewer.prototype._imageToDataUri = function(img, tWidth, tHeight, fn)
 };
 
 /**
+ * @summary Resize container view
+ * @private
+ */
+PhotoSphereViewer.prototype._resizeView = function(height){
+  this.resize({width: this.prop.size.width, height: height});
+  this.needsUpdate();
+
+  this._setLongitudeRange([
+    this.config.default_longitude_range[0] * 0.9,
+    this.config.default_longitude_range[1] * 0.9
+  ]);
+
+  this._setLatitudeRange([
+    this.config.default_latitude_range[0] * 0.9,
+    this.config.default_latitude_range[1] * 0.9
+  ]);
+};
+
+/**
+ * @summary Reset size of container view
+ * @private
+ */
+PhotoSphereViewer.prototype._resetView = function(){
+  this.resize({width: window.screen.width, height: window.screen.height});
+  this.needsUpdate();
+
+  this._setLongitudeRange();
+  this._setLatitudeRange();
+};
+
+/**
  * @summary Set or reset latitude range of canvas
  * @private
  */
@@ -1208,6 +1239,25 @@ PhotoSphereViewer.prototype._setLatitudeRange = function(range){
   } else {
     if (this.config.default_latitude_range) {
       this.config.latitude_range = this.config.default_latitude_range
+    }
+
+    this.rotate({
+      longitude: this.prop.position.longitude,
+      latitude: this.prop.position.latitude
+    })
+  }
+};
+
+/**
+ * @summary Set or reset longitude range of canvas
+ * @private
+ */
+PhotoSphereViewer.prototype._setLongitudeRange = function(range){
+  if (range) {
+    this.config.longitude_range = range;
+  } else {
+    if (this.config.default_longitude_range) {
+      this.config.longitude_range = this.config.default_longitude_range;
     }
 
     this.rotate({
