@@ -1215,6 +1215,8 @@ PhotoSphereViewer.prototype._resizeView = function(height){
     this.config.default_latitude_range[0] * rangeReductionFactor,
     this.config.default_latitude_range[1] * rangeReductionFactor
   ]);
+
+  this.animate(this.getPosition());
 };
 
 /**
