@@ -587,25 +587,34 @@ PhotoSphereViewer.prototype._imageToDataUri = function(img, tWidth, tHeight, fn)
  * @summary Resize container view
  * @private
  */
-PhotoSphereViewer.prototype._resizeView = function(height){
+PhotoSphereViewer.prototype._resizeView = function(height, width){
+  if (!height)
+    height = this.prop.size.height;
+
+  if (!width)
+    width = this.prop.size.width;
+
   if (!this.preResizeView) {
     this.preResizeView = {
       width: this.prop.size.width,
       height: this.prop.size.height
     };
 
-    this.resize({width: this.prop.size.width, height: height});
-    var rangeReductionFactor = 0.9;
+    this.resize({width: width, height: height});
 
-    this._setLongitudeRange([
-      this.config.default_longitude_range[0] * rangeReductionFactor,
-      this.config.default_longitude_range[1] * rangeReductionFactor
-    ]);
+    if (height) {
+      var rangeReductionFactor = 0.9;
 
-    this._setLatitudeRange([
-      this.config.default_latitude_range[0] * rangeReductionFactor,
-      this.config.default_latitude_range[1] * rangeReductionFactor
-    ]);
+      this._setLongitudeRange([
+        this.config.default_longitude_range[0] * rangeReductionFactor,
+        this.config.default_longitude_range[1] * rangeReductionFactor
+      ]);
+
+      this._setLatitudeRange([
+        this.config.default_latitude_range[0] * rangeReductionFactor,
+        this.config.default_latitude_range[1] * rangeReductionFactor
+      ]);
+    }
 
     this.animate(this.getPosition());
   }
