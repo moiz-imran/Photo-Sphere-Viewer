@@ -591,19 +591,16 @@ PhotoSphereViewer.prototype._resizeView = function(height, width){
   var rangeReductionFactor = 1;
 
   if (!height) {
-    height = this.prop.size.height;
+    height = "100%";
   }
 
   if (!width) {
-    width = this.prop.size.width;
+    width = "100%";
     rangeReductionFactor = 0.9;
   }
 
-  if (!this.preResizeView) {
-    this.preResizeView = {
-      width: this.prop.size.width,
-      height: this.prop.size.height
-    };
+  if (!this.isResized) {
+    this.isResized = true;
 
     this.resize({width: width, height: height});
 
@@ -626,13 +623,13 @@ PhotoSphereViewer.prototype._resizeView = function(height, width){
  * @private
  */
 PhotoSphereViewer.prototype._resetView = function(){
-  if (this.preResizeView) {
-    this.resize(this.preResizeView);
+  if (this.isResized) {
+    this.resize({width: "100%", height: "100%"});
 
     this._setLongitudeRange();
     this._setLatitudeRange();
 
-    this.preResizeView = null;
+    this.isResized = false;
     this.needsUpdate();
   }
 };
